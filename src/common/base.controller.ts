@@ -1,11 +1,16 @@
 import {Response, Router} from 'express'
-import {LoggerService} from '../logger/logger.service';
 import {iControllerRoute} from './route.interface';
+import {ILogger} from '../logger/logger.interface';
+import {inject, injectable} from 'inversify';
+import 'reflect-metadata'
+import {TYPES} from '../types';
 
+
+@injectable()
 export abstract class BaseController {
     private readonly _router: Router
 
-    constructor(private logger: LoggerService) {
+    constructor(@inject(TYPES.ILogger) private logger: ILogger) {
         this._router = Router()
     }
 
@@ -13,7 +18,7 @@ export abstract class BaseController {
         return this._router
     }
 
-    public send<T>(res: Response,code: number, message: T) {
+    public send<T>(res: Response, code: number, message: T) {
         res.type('application/json')
         return res.status(code).json(message)
     }

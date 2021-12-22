@@ -1,6 +1,12 @@
 import {Logger} from 'tslog'
-export class LoggerService {
-    private logger: Logger
+import {ILogger} from './logger.interface';
+import {injectable} from 'inversify';
+import 'reflect-metadata'
+
+
+@injectable()
+export class LoggerService implements ILogger {
+    logger: Logger
 
     constructor() {
         this.logger = new Logger({
@@ -10,17 +16,21 @@ export class LoggerService {
             displayFunctionName: false
         })
     }
+
     log(...args: unknown[]) {
         this.logger.info(...args)
     }
+
     error(...args: unknown[]) {
         // отправка в sentry / rollbar(сервисы) для логирования ошибок
         this.logger.error(...args)
     }
+
     warn(...args: unknown[]) {
         this.logger.warn(...args)
     }
 }
+
 // абстракция над логером нужна для скрытия настроек конфигурации
 // и для добавления каких либо обработок
 
