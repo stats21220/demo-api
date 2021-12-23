@@ -1,43 +1,45 @@
-import express, {Express} from 'express';
-import {Server} from 'node:http'
-import {UserController} from './users/user.controller';
-import {ExceptionFilter} from './errors/exception.filter';
-import {ILogger} from './logger/logger.interface';
-import {inject, injectable} from 'inversify';
-import {TYPES} from './types';
+import express, { Express } from 'express'
+import { Server } from 'http'
+import { inject, injectable } from 'inversify'
+import { ExeptionFilter } from './errors/exeption.filter'
+import { ILogger } from './logger/logger.interface'
+import { TYPES } from './types'
+import { UserController } from './users/users.controller'
+import { json } from 'body-parser'
 import 'reflect-metadata'
-
 
 @injectable()
 export class App {
-    private app: Express //интерфейс описывающий типы) приложения
-    server: Server
-    port: number
-    // logger: ILogger
-    // userController: UserController
-    // exceptionFilter: ExceptionFilter
+	app: Express
+	server: Server
+	port: number
 
-    constructor(
-        @inject(TYPES.ILogger) public logger: ILogger,
-        @inject(TYPES.UserController) public userController: UserController,
-        @inject(TYPES.ExceptionFilter) public exceptionFilter: ExceptionFilter
-    ) {
-        this.app = express() // само приложение
-        this.port = 8000
-    }
+	constructor(
+		@inject(TYPES.ILogger) private logger: ILogger,
+		@inject(TYPES.UserController) private userController: UserController,
+		@inject(TYPES.ExeptionFilter) private exeptionFilter: ExeptionFilter,
+	) {
+		this.app = express()
+		this.port = 8000
+	}
 
-    useRoutes() {
-        this.app.use('/users', this.userController.router)
-    }
+	useMiddleware(): void {
+		this.app.use(json())
+	}
 
-    useExceptionFilters() {
-        this.app.use(this.exceptionFilter.catch.bind(this.exceptionFilter))
-    }
+	useRoutes(): void {
+		this.app.use('/users', this.userController.router)
+	}
 
-    public async init() {
-        this.useRoutes()
-        this.useExceptionFilters()
-        this.server = this.app.listen(this.port)
-        this.logger.log(`Сервер запущен на http://localhost:${this.port}`)
-    }
+	useExeptionFilters(): void {
+		this.app.use(this.exeptionFilter.catch.bind(this.exeptionFilter))
+	}
+
+	public async init(): Promise<void> {
+		this.useMiddleware()
+		this.useRoutes()
+		this.useExeptionFilters()
+		this.server = this.app.listen(this.port)
+		this.logger.log(`Сервер запущен на http://localhost:${this.port}`)
+	}
 }
