@@ -24,13 +24,14 @@ export class UserService implements IUserService {
 			await newUser.setPassword(password, Number(salt))
 			return await this.usersRepository.create(newUser)
 		}
-
-		// проверка что он есть?
-		// если есть - возвращаем null
-		// если нет - создаём
 	}
 
-	async validateUser(dto: UserLoginDto): Promise<boolean> {
-		return true
+	async validateUser({ email, password }: UserLoginDto): Promise<boolean> {
+		const existedUser = await this.usersRepository.find(email)
+		if (!existedUser) {
+			return false
+		}
+		const newUser = new User(existedUser.email, existedUser.name, existedUser.password)
+		return newUser.comparePassword(password)
 	}
 }
